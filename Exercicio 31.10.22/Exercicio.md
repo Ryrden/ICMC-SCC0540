@@ -32,7 +32,6 @@ Considere o esquema a seguir, e as restrições semânticas conhecidas:
 ## Exercicio 1
 
 ```SQL
-
 CREATE TABLE TIME (
     NOME VARCHAR2(30) NOT NULL,
     ESTADO VARCHAR2(30) NOT NULL,
@@ -183,3 +182,33 @@ DELETE FROM TIME
 
 ```
 
+A Exclusão a cima não é permitida porque a tabela Jogador possui a condição de restrição de integridade ON DELETE RESTRICT, ou seja, não é possível excluir um time que possui jogadores e todo jogador deve pertencer a um time.
+
+Desta forma, é necessário excluir os jogadores do time ou alterar o time de cada jogador para que seja possível excluir o time.
+
+```SQL
+DELETE FROM JOGADOR 
+    WHERE TIME = 'Corinthians';
+
+DELETE FROM TIME 
+    WHERE LOCALIZACAO = 'SP';
+
+```
+
+A Exclusão a cima agora é executada com sucesso, pois os jogadores do time de SP foram excluídos antes.
+
+Como resultado dessa ação, as Tabelas que possuem a condição de restrição de integridade ON DELETE CASCADE e que possuem uma chave estrangeira que referencia a chave primária da tabela Time, também são excluídas.
+
+Do exemplo a cima, as tabelas DIRETOR, UNIFORME, JOGA, PARTIDA são  excluídas, pois possuem uma chave estrangeira que referencia a chave primária da tabela Time.
+
+A tabela POSICAO_JOGADOR é excluida também, porque os jogadores do time de SP foram excluídos.
+
+---
+
+### Observações sobre a exclusão de dados
+
+A exclusão de dados é feita utilizando a cláusula DELETE FROM, que recebe como parâmetro o nome da tabela e a condição de exclusão.
+
+Esta condição de exclusão de preferência deve ser feita utilizando a chave primária da tabela, pois assim a exclusão é feita de forma mais rápida e também não haverá o risco de excluir dados que não deveriam ser excluídos.
+
+O Exemplo a cima, o qual exclui o time de SP, foi feito utilizando a condição de exclusão utilizando a localização do time, o que não é uma boa prática, nesse contexto está tudo bem, pois, o time de SP é o único que possui a localização SP, mas em outros casos, pode ser que existam mais de um time com a mesma localização, e nesse caso, a exclusão de todos os times com a mesma localização, não é o que se deseja.

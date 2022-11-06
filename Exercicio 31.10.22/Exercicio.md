@@ -29,6 +29,17 @@ Considere o esquema a seguir, e as restrições semânticas conhecidas:
      - 1 partida entre esses dois times
    - remova da tabela Time o time de SP (usando o estado como condição de localização); quais tabelas foram afetadas, e como?
 
+3. Faça as seguintes alterações no esquema da base de dados:
+    - a) insira, na tabela Jogador, o atributo atômico endereço, que poderá assumir valor nulo. O que aconteceu nas tuplas já existentes na tabela?
+    - b) faça o mesmo teste para um novo atributo qualquer com valor default.
+    - c) escolha uma tabela e crie uma nova constraint do tipo check, de modo que os valores já existentes na tabela não atendam à nova restrição (faça as inserções necessárias para teste antes da criação da nova constraint). Pesquise o funcionamento do check no Oracle e teste as possibilidades (dica: novalidate).
+    - d) para as tabelas **Jogador** e **Posicao_Jogador**:
+        1. insira pelo menos 2 tuplas em cada tabela;
+        2. usando a interface do SQL Developer, veja a estrutura das tabelas, constraints, índices criados para cada uma delas elas e dados inseridos (double click no nome da tabela – na hierarquia do lado esquerdo - abre abas no lado direto com todas as informações)
+        3. remova da tabela Jogador o atributo CPF. Qual o efeito disso (estrutura e dados) em Posicao_Jogador?
+
+---
+
 ## Exercicio 1
 
 ```SQL
@@ -103,6 +114,8 @@ CREATE TABLE UNIFORME (
 
 ```
 
+---
+
 ## Exercicio 2
 
 ```SQL
@@ -127,7 +140,7 @@ INSERT INTO DIRETOR VALUES ('Corinthians', 'Cláudio');
 INSERT INTO JOGADOR VALUES ('123456789-00', '123456789', 'João', TO_DATE('01/01/1991', 'DD/MM/YYYY'), 'Rio de Janeiro', 'Flamengo');
 INSERT INTO JOGADOR VALUES ('123456789-01', '123456789', 'Pedro', TO_DATE('01/01/1987', 'DD/MM/YYYY'), 'São Paulo', 'Corinthians');
 
--- Posições dos jogadores (Somente goleiro e atacante)
+-- Posições dos jogadores
 INSERT INTO POSICAO VALUES ('123456789-00', 'Atacante');
 INSERT INTO POSICAO VALUES ('123456789-01', 'Atacante');
 
@@ -203,8 +216,6 @@ Do exemplo a cima, as tabelas DIRETOR, UNIFORME, JOGA, PARTIDA são  excluídas,
 
 A tabela POSICAO_JOGADOR é excluida também, porque os jogadores do time de SP foram excluídos.
 
----
-
 ### Observações sobre a exclusão de dados
 
 A exclusão de dados é feita utilizando a cláusula DELETE FROM, que recebe como parâmetro o nome da tabela e a condição de exclusão.
@@ -212,3 +223,78 @@ A exclusão de dados é feita utilizando a cláusula DELETE FROM, que recebe com
 Esta condição de exclusão de preferência deve ser feita utilizando a chave primária da tabela, pois assim a exclusão é feita de forma mais rápida e também não haverá o risco de excluir dados que não deveriam ser excluídos.
 
 O Exemplo a cima, o qual exclui o time de SP, foi feito utilizando a condição de exclusão utilizando a localização do time, o que não é uma boa prática, nesse contexto está tudo bem, pois, o time de SP é o único que possui a localização SP, mas em outros casos, pode ser que existam mais de um time com a mesma localização, e nesse caso, a exclusão de todos os times com a mesma localização, não é o que se deseja.
+
+---
+
+## Exercicio 3
+
+a) Insira, na tabela Jogador, o atributo atômico endereço, que poderá assumir valor nulo. O que aconteceu nas tuplas que já existentes na tabela?
+
+```SQL
+-- Inserindo na tabela Jogador o atributo atômico endereço
+ALTER TABLE JOGADOR
+    ADD ENDERECO VARCHAR2(100);
+
+```
+
+Ao efetuar a alteração da tabela jogador, o Oracle adiciona o atributo endereço em todas as tuplas da tabela, porém, como o atributo endereço é nulo, o Oracle adiciona o valor NULL em todas as tuplas.
+
+b) Faça o mesmo teste para um novo atributo qualquer com valor default.
+
+```SQL
+ALTER TABLE JOGADOR
+    ADD SALARIO NUMBER DEFAULT 0;
+
+```
+
+Ao efetuar a alteração da tabela jogador, o Oracle adiciona o atributo salario em todas as tuplas da tabela, porém, como o atributo salario é nulo, o Oracle adiciona o valor 0 em todas as tuplas.
+
+c) escolha uma tabela e crie uma nova constraint do tipo check, de modo que os valores já existentes na tabela não atendam à nova restrição (faça as inserções necessárias para teste antes da criação da nova constraint).
+
+```SQL
+UPDATE JOGADOR
+    SET SALARIO = -1;
+    WHERE CPF = '123456789-00';
+
+UPDATE JOGADOR
+    SET SALARIO = 10;
+    WHERE CPF = '123456789-01';
+
+-- Criando uma nova constraint do tipo check
+ALTER TABLE JOGADOR
+    ADD CONSTRAINT CHECK_SALARIO CHECK (SALARIO > 0);
+```
+
+Ao efetuar a alteração da tabela jogador, o Oracle adiciona a constraint check_salario em todas as tuplas da tabela, como há tuplas que não atendem a condição da constraint, o Oracle não permite a inserção da constraint.
+
+Caso ativemos o NOVALIDATE na criação da constraint, o Oracle não irá validar a condição da constraint, e a constraint será criada.
+
+```SQL
+ALTER TABLE JOGADOR
+    ADD CONSTRAINT CHECK_SALARIO CHECK (SALARIO > 0) NOVALIDATE;
+```
+
+O comando a cima é executado com sucesso e as tuplas que não atendem a condição da constraint, continuam com o valor anterior.
+
+d) Com base na tabela Jogador e Posicao_jogador
+
+i) Insira pelo menos duas tuplas em cada tabela
+
+```SQL
+INSERT INTO JOGADOR VALUES ('123456789-02', 'João', 'Rua 1', 1000, 'Corinthians');
+INSERT INTO JOGADOR VALUES ('123456789-03', 'Kleber', 'Rua 2', 2000, 'Flamengo');
+
+INSERT INTO POSICAO_JOGADOR VALUES ('123456789-02', 'Atacante');
+INSERT INTO POSICAO_JOGADOR VALUES ('123456789-03', 'Goleiro');
+```
+
+ii) Não consigo realizar essa questão, pois não consegui executar o SQL Developer
+
+iii) remova da tabela Jogador o atributo CPF, qual o efeito disso em Posicao_Jogador?
+
+```SQL
+ALTER TABLE JOGADOR
+    DROP COLUMN CPF;
+```
+
+Ao remover o atributo CPF da tabela Jogador, o Oracle remove o atributo CPF da tabela Posicao_Jogador, pois a tabela Posicao_Jogador possui uma chave estrangeira que referencia a chave primária da tabela Jogador.

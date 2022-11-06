@@ -8,29 +8,16 @@ Considere o esquema a seguir, e as restrições semânticas conhecidas:
 - o tipo do Uniforme pode ser "TITULAR" ou "RESERVA";
 - o placar inicial (default) de uma partida é sempre 0X0;
 
-Time = {nome, estado, tipo, saldo_gols}
-
-Joga = {time1, time2, classico}
-
-Partida = {time1, time2, data, placar, local}
-
-Jogador = {cpf, rg, nome, data_nasc, naturalidade, time}
-
-Posição_Jogador ={jogador, posicao}
-
-Diretor = {time, nome }
-
-Uniforme = {time, tipo, cor_principal}
+![modelo Relacional](ModeloRelacional.png)
 
 1. Crie o esquema da base de dados (tabelas) de acordo com o esquema lógico acima.
-    - crie todas as tabelas;
-    - defina todas as restrições de integridade e semânticas necessárias;
+    - crie todas as tabelas
+    - defina todas as restrições de integridade e semânticas necessárias
       - dica: para o atributo de placar, faça check de verificação de formato.
     Pesquise REGEXP_LIKE
     - defina os atributos que podem e que não podem assumir valor nulo;
-    - defina valores default;
-    - defina as ações apropriadas associadas a operações de remoção de tuplas referenciadas por chaves estrangeiras (ON DELETE);
-*/
+    - defina valores default
+    - defina as ações apropriadas associadas a operações de remoção de tuplas referenciadas por chaves estrangeiras (ON DELETE)
 
 ```SQL
 
@@ -40,7 +27,7 @@ CREATE TABLE TIME (
     TIPO VARCHAR2(30) NOT NULL
                     CHECK (TIPO IN ('AMADOR', 'PROFISSIONAL')),
     SALDO_GOLS NUMBER(3) DEFAULT 0,
-    PRIMARY KEY (NOME),
+    PRIMARY KEY (NOME)
 );  
 
 CREATE TABLE JOGA (
@@ -48,8 +35,10 @@ CREATE TABLE JOGA (
     TIME2 VARCHAR2(30) NOT NULL,
     CLASSICO BOOLEAN NOT NULL,
     PRIMARY KEY (TIME1, TIME2),
-    CONSTRAINT FK_JOGA_1 FOREIGN KEY (TIME1) REFERENCES TIME (NOME),
+    CONSTRAINT FK_JOGA_1 FOREIGN KEY (TIME1) REFERENCES TIME (NOME)
+    ON DELETE CASCADE,
     CONSTRAINT FK_JOGA_2 FOREIGN KEY (TIME2) REFERENCES TIME (NOME)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE PARTIDA (
@@ -60,7 +49,7 @@ CREATE TABLE PARTIDA (
                         CHECK (PLACAR REGEXP_LIKE "^[0-9]+x[0-9]+$"),
     LOCAL VARCHAR2(30) NOT NULL,
     PRIMARY KEY (TIME1, TIME2, DATA),
-    CONSTRAINT FK_PARTIDA FOREIGN KEY (TIME1, TIME2) REFERENCES JOGA (TIME1, TIME2)
+    CONSTRAINT FK_PARTIDA FOREIGN KEY (TIME1, TIME2) REFERENCES JOGA (TIME1, TIME2) ON DELETE CASCADE
 );
 
 CREATE TABLE JOGADOR (
@@ -72,13 +61,15 @@ CREATE TABLE JOGADOR (
     TIME VARCHAR2(30) NOT NULL,
     PRIMARY KEY (CPF),
     UNIQUE (RG, NOME),
+    CONSTRAINT FK_JOGADOR FOREIGN KEY (TIME) REFERENCES TIME (NOME) 
+    ON DELETE RESTRICT
 );
 
 CREATE TABLE POSICAO_JOGADOR (
     JOGADOR VARCHAR2(30) NOT NULL,
     POSICAO VARCHAR2(30) NOT NULL,
     PRIMARY KEY (JOGADOR, POSICAO),
-    CONSTRAINT FK_POSICAO_JOGADOR FOREIGN KEY (JOGADOR) REFERENCES JOGADOR (CPF)
+    CONSTRAINT FK_POSICAO_JOGADOR FOREIGN KEY (JOGADOR) REFERENCES JOGADOR (CPF) ON DELETE CASCADE 
 );
 
 CREATE TABLE DIRETOR (
@@ -86,6 +77,7 @@ CREATE TABLE DIRETOR (
     NOME VARCHAR2(30) NOT NULL,
     PRIMARY KEY (TIME, NOME),
     CONSTRAINT FK_DIRETOR FOREIGN KEY (TIME) REFERENCES TIME (NOME)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE UNIFORME (
@@ -95,6 +87,7 @@ CREATE TABLE UNIFORME (
     COR_PRINCIPAL VARCHAR2(30) NOT NULL,
     PRIMARY KEY (TIME, TIPO),
     CONSTRAINT FK_UNIFORME FOREIGN KEY (TIME) REFERENCES TIME (NOME)
+    ON DELETE CASCADE
 );
 
 ```
